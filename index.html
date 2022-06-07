@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>고양이 가라사대</title>
+</head>
+<style>
+  body {
+    text-align: center;
+  }
+
+  .main-card button {
+    position: relative;
+    left: -45px;
+    bottom: 15px;
+  }
+
+  .favorites {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+</style>
+
+<body>
+  <div id="app"></div>
+
+  <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script type="text/babel">
+    console.log("야옹");
+    const CAT1 = "https://cataas.com/cat/60b73094e04e18001194a309/says/react";
+    const CAT2 = "https://cataas.com//cat/5e9970351b7a400011744233/says/inflearn";
+    const CAT3 = "https://cataas.com/cat/595f280b557291a9750ebf65/says/JavaScript";
+    const jsonLocalStorage = {
+      setItem: (key, value) => {
+        localStorage.setItem(key, JSON.stringify(value));
+        // 저장 시 stringify : javascript 객체 or value를 json형태로 변환하여 저장
+      },
+      getItem: (key) => {
+        return JSON.parse(localStorage.getItem(key));
+        // 꺼낼 때 문자열을 javascript 객체로 변환
+      },
+    };
+    const Title = (props) => {
+      return (
+        <h1>{props.children}</h1>
+      )
+    }
+    const Form = ({ updateMainCat }) => {
+      const [value, setValue] = React.useState('')
+      const includesHangul = (text) => /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/i.test(text);
+      const [errorMessage, setErrorMessage] = React.useState('')
+
+
+      function handleInputChange(e) {
+        const userValue = e.target.value
+        setErrorMessage('')
+        if (includesHangul(userValue)) {
+          setErrorMessage('한글은 쓸 수 없습니다.')
+        }
+        setValue(e.target.value.toUpperCase())
+      }
+
+      function handleFormSubmit(event) {
+        event.preventDefault()
+        setErrorMessage('')
+        if (value === '') {
+          setErrorMessage('값을 입력해주세요')
+          return;
+        }
+        updateMainCat();
+        setValue('')
+
+      }
+
+
+
+
+      // form의 기본 동작은 제출 후 refresh 하는 것임.
+      return (
+        <form onSubmit={handleFormSubmit}>
+          <input
+            type="text"
+            name="name"
+            placeholder="영어 대사를 입력해주세요"
+            onChange={handleInputChange}
+            value={value}
+          />
+          <button type="submit">생성</button>
+          {errorMessage === "" ? null :
+            <p style={{ color: 'red' }}>{errorMessage}</p>}
+        </form>
+      )
+    }
+
+    // components 는 무조건 대문자 시작
+    function CatItem(props) {
+      return (
+        <li>
+          <img src={props.img} style={{ width: "150px" }} />
+        </li>
+      )
+    }
+
+    function Favorites({ favorites }) {
+      return (
+        <ul className="favorites">
+          {favorites.map(cat =>
+            <CatItem img={cat} key={cat} />)}
+        </ul>
+      )
+    }
+
+    // event 이름을 지을 때, handle + 어쩌고 + event이름(click, mouseover)
+
+    const MainCard = ({ img, onHeartClick }) => {
+      return (
+        <div className="main-card">
+          <img src={img} alt="고양이" width="400" />
+          <button onClick={onHeartClick}>🤍</button>
+        </div>
+      )
+    }
+
+    // 하나의 변수를 react에서 element라고 함.
+    const 여기다 = document.querySelector('#app')
+
+
+    const App = () => {
+
+      const [counter, setCounter] = React.useState(
+        jsonLocalStorage.getItem('counter') || 1
+      );
+      // form 컴포넌트 안에서 쓰이던 상태를 상위에서 같이 쓰고 싶을 때, 상태를 끌어올리게 됨.
+      // 부모 컴포넌트에서 상태 선언 후, 자식 컴포넌트에 props로 넘겨줌. 
+      // 상태를 어디에 두는지는 답이 없음. 
+
+      const [mainCat, setMainCat] = React.useState(CAT1)
+      const [favorites, setFavorites] = React.useState(
+        jsonLocalStorage.getItem('favorites') || [])
+
+      function updateMainCat() {
+        setMainCat(CAT2)
+        const nextCounter = counter + 1
+        setCounter(nextCounter)
+        jsonLocalStorage.setItem('counter', nextCounter)
+      }
+      function handleHeartClick() {
+        const nextFavorites = [...favorites, mainCat]
+        setFavorites(nextFavorites)
+        jsonLocalStorage.setItem('favorites', nextFavorites)
+      }
+
+      // 함수 이름 짓기 컨벤션, handler는 handle ~ , 근데 props로 넘기면 on~
+      return (
+        <div>
+          <Title> {counter}번째 고양이 가라사대 </Title>
+          <Form updateMainCat={updateMainCat} />
+          <MainCard img={mainCat} onHeartClick={handleHeartClick} />
+          <Favorites favorites={favorites} />
+        </div>
+      )
+    }
+
+    ReactDOM.render(<App />, 여기다) // catItem을 여기다 render
+
+  </script>
+</body>
+
+</html>
